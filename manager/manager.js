@@ -13,12 +13,11 @@ const socket = server(`http://localhost:${port}`);
 // import faker to get random data
 const { faker } = require('@faker-js/faker');
 
-// event the flight to get the data from the new flight
-socket.on('flight', flighthandler)
-
 // set time to loop through to get random data every 10 sec
 setInterval(() => {
     let data = {
+        event: 'new-fligh',
+        time: new Date(),
         details: {
             id: faker.string.uuid(),
             pilotes: faker.internet.userName(),
@@ -30,6 +29,8 @@ setInterval(() => {
     socket.emit('new-flight', data)
 }, 10000)
 
+// event the flight to get the data from the new flight
+socket.on('flight', flighthandler)
 
 // handle the flight event hanlder which we already give it the data from the new flight
 function flighthandler(payload) {

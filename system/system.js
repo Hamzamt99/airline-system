@@ -4,13 +4,16 @@ require('dotenv').config()
 
 const port = process.env.PORT || 3000
 
-
 // import the socket server
 const server = require('socket.io')(port);
+
+const uuid = require('uuid').v4
 
 // create new space name called airline
 const airline = server.of('/airline')
 
+const queue = {
+}
 
 //connect  the server to the manager
 server.on('connection', socket => {
@@ -21,7 +24,11 @@ server.on('connection', socket => {
         server.emit('flight', data)
         // emitting the data globly so we can use it in any where 
         server.emit('getData', data)
+        let id = uuid();
+        queue[id] = data
+        server.emit('get-all', queue)
     })
+
     // log the state of the proccess 
     socket.on('logStatus', data => {
         console.log(data);
@@ -30,10 +37,21 @@ server.on('connection', socket => {
         server.emit('notifyManager', data)
     })
 })
-
 // connect to the space name airline from the pilot
 airline.on('connection', socket => {
     console.log('pilot has been connected with id', socket.id);
+    socket.on('offline', () => {
+        Object.keys(queue)
+            .forEach(id => {
+                airline.emit('get-all-offline', {
+                    id,
+                    flight: queue[id]
+                })
+            })
+    })
+    socket.on('emptyQueue', payload => {
+        delete queue[payload]
+    })
     // take the data from the getFlight event which is in the pilot file
     socket.on('getFlight', data => {
         // emitting the data (sending it back) to the took off and arrived events to handle them in pilot file

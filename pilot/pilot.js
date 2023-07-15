@@ -24,8 +24,20 @@ socketServer.on('getData', payload => {
     socket.emit('getFlight', payload)
 })
 // taking the data that we send from the system and handle it here the took off and the arrived functions 
+socket.emit('offline')
+socketServer.on('get-all', flighHandler)
 socket.on('took-off', tookOffHandler)
 socket.on('arrived', arrivedHandler)
+
+socket.on('get-all-offline', payload => {
+    console.log(`Pilot:Sorry i didnt catch this flight ID ${payload.flight.details.id}`);
+
+    socket.emit('emptyQueue', payload.id)
+})
+
+function flighHandler(payload) {
+    console.log(payload);
+}
 
 function tookOffHandler(payload) {
     setTimeout(() => {
